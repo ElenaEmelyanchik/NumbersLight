@@ -4,9 +4,6 @@ import android.R
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.numberslight.viewmodel.NumberDetailsViewModelFactory
-import com.example.numberslight.viewmodel.NumbersListViewModelFactory
-import javax.inject.Inject
 
 
 class NumberDetailsActivity : AppCompatActivity() {
@@ -20,8 +17,9 @@ class NumberDetailsActivity : AppCompatActivity() {
             return
         }
         if (savedInstanceState == null) {
-            val details = DetailsFragment()
-            details.setArguments(intent.extras)
+            val details = NumberDetailsFragment().apply {
+                arguments = intent.extras
+            }
             supportFragmentManager.beginTransaction().add(R.id.content, details).commit()
         }
     }

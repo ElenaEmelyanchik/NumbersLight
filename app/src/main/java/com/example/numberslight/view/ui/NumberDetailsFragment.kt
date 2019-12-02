@@ -16,7 +16,7 @@ import kotlinx.android.synthetic.main.number_details_view.*
 import javax.inject.Inject
 
 
-open class DetailsFragment : Fragment() {
+class NumberDetailsFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: NumberDetailsViewModelFactory
@@ -25,9 +25,8 @@ open class DetailsFragment : Fragment() {
         ViewModelProvider(this, viewModelFactory).get(NumberDetailsViewModel::class.java)
     }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        (activity?.application as App).component().inject(this)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         viewModel.getDetails(getShownName())
         viewModel.getNumberDetails().observe(viewLifecycleOwner, Observer {
             textView.text = it.text
@@ -36,7 +35,7 @@ open class DetailsFragment : Fragment() {
     }
 
     fun getShownName(): String {
-        return getArguments()?.getString("name", "") ?: ""
+        return arguments?.getString("name", "") ?: ""
     }
 
     override fun onCreateView(
@@ -46,18 +45,18 @@ open class DetailsFragment : Fragment() {
         if (container == null) {
             return null
         }
-        val inflate= inflater.inflate(R.layout.number_details_view, container, false)
 
+        val inflate= inflater.inflate(R.layout.number_details_view, container, false)
+        (activity?.application as App).component().inject(this)
         return inflate
     }
 
     companion object{
-        fun newInstance(name: String?): DetailsFragment? {
-            val f = DetailsFragment()
-            // Supply index input as an argument.
+        fun newInstance(name: String?): NumberDetailsFragment? {
+            val f = NumberDetailsFragment()
             val args = Bundle()
             args.putString("name", name)
-            f.setArguments(args)
+            f.arguments = args
             return f
         }
     }

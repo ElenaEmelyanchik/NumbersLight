@@ -13,7 +13,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.numberslight.App
 import com.example.numberslight.R
-import com.example.numberslight.service.model.NumberData
+import com.example.numberslight.utils.BUNDLE_NAME
+import com.example.numberslight.utils.launch
 import com.example.numberslight.view.adapter.MyItemRecyclerViewAdapter
 import com.example.numberslight.viewmodel.NumbersDataViewModel
 import com.example.numberslight.viewmodel.NumbersListViewModelFactory
@@ -21,7 +22,7 @@ import kotlinx.android.synthetic.main.article_view.*
 import javax.inject.Inject
 
 
-class NumbersFragment: Fragment() {
+class NumbersFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: NumbersListViewModelFactory
@@ -29,29 +30,31 @@ class NumbersFragment: Fragment() {
     private val viewModel: NumbersDataViewModel by lazy {
         ViewModelProvider(this, viewModelFactory).get(NumbersDataViewModel::class.java)
     }
-    var mDualPane = false
+    var isDualPane = false
     var selectedName: String? = null
     var viewAdapter: MyItemRecyclerViewAdapter? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.article_view, container, false)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? =
+        inflater.inflate(R.layout.article_view, container, false).also {
+            (activity?.application as App).component().inject(this)
+        }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        viewModel.numbers().observe(viewLifecycleOwner, Observer {
+            viewAdapter?.updateValue(it)
+        })
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        (activity?.application as App).component().inject(this)
-
         val viewManager = LinearLayoutManager(this.context)
-        viewAdapter = MyItemRecyclerViewAdapter(object :
-            ItemFragment.OnListFragmentInteractionListener {
-            override fun onListFragmentInteraction(item: NumberData?) {
-                showDetails(item?.name)
-            }
-        }
-        )
+        viewAdapter = MyItemRecyclerViewAdapter { t -> showDetails(t.name) }
 
         (my_recycler_view as RecyclerView).apply {
             setHasFixedSize(true)
@@ -60,23 +63,12 @@ class NumbersFragment: Fragment() {
 
         }
 
-        viewModel.numbers().observe(viewLifecycleOwner, Observer {
-            viewAdapter?.updateValue(it)
-        })
-
-
-
-        // Check to see if we have a frame in which to embed the details
-// fragment directly in the containing UI.
         val detailsFrame: View? = activity?.findViewById(R.id.details)
-        mDualPane = detailsFrame != null && detailsFrame.getVisibility() === View.VISIBLE
-        if (savedInstanceState != null) { // Restore last state for checked position.
+        isDualPane = detailsFrame != null && detailsFrame.visibility === View.VISIBLE
+        if (savedInstanceState != null) {
             selectedName = savedInstanceState.getString("curName", "")
         }
-        if (mDualPane) {
-            //viewAdapter.selectItem()// In dual-pane mode, the list view highlights the selected item.
-
-            // Make sure our UI is in the correct state.
+        if (isDualPane) {
             showDetails(selectedName)
         }
     }
@@ -86,40 +78,25 @@ class NumbersFragment: Fragment() {
         outState.putString("curName", selectedName)
     }
 
-
-    /**
-     * Helper function to show the details of a selected item, either by
-     * displaying a fragment in-place in the current UI, or starting a
-     * whole new activity in which it is displayed.
-     */
-    fun showDetails(name: String?) {
+    private fun showDetails(name: String?) {
         selectedName = name
-        if (mDualPane) { // We can display everything in-place with fragments, so update
-// the list to highlight the selected item and show the data.
-         //   viewAdapter?.selectItem(index, true)
-            //listView.setItemChecked(index, true)
-            // Check what fragment is currently shown, replace if needed.
-            var details: DetailsFragment? =
-                fragmentManager!!.findFragmentById(R.id.details) as DetailsFragment?
-            if (details == null || !details.getShownName().equals(name)) { // Make new fragment to show this selection.
-                details = DetailsFragment.newInstance(name)
-                // Execute a transaction, replacing any existing fragment
-// with this one inside the frame.
-                val ft: FragmentTransaction = fragmentManager!!.beginTransaction()
-               // if (index == 0) {
-                    details?.let { ft.replace(R.id.details, it) }
-             //   } else {
-                  //  details?.let { ft.replace(R.id.a_item, it) }
-             //   }
-                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                ft.commit()
+        if (isDualPane) {
+            viewAdapter?.selectItem(name)
+            var details: NumberDetailsFragment? =
+                activity?.supportFragmentManager?.findFragmentById(R.id.details) as NumberDetailsFragment?
+            if (details == null || !details.getShownName().equals(name)) {
+                details = NumberDetailsFragment.newInstance(name)
+                val ft: FragmentTransaction? = activity?.supportFragmentManager?.beginTransaction()
+                details?.let { ft?.replace(R.id.details, it) }
+                ft?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                ft?.commit()
             }
-        } else { // Otherwise we need to launch a new activity to display
-// the dialog fragment with selected text.
-            val intent = Intent()
-            intent.setClass(activity!!, NumberDetailsActivity::class.java)
-            intent.putExtra("name", name)
-            startActivity(intent)
+        } else {
+            this.context?.let {
+                launch<NumberDetailsActivity>(it) {
+                    putExtra(BUNDLE_NAME, name)
+                }
+            }
         }
     }
 }
