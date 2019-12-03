@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.lifecycle.Observer
@@ -13,11 +14,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.numberslight.App
 import com.example.numberslight.R
 import com.example.numberslight.R.id.number_details
+import com.example.numberslight.di.NoNetworkConnectionInterceptor
 import com.example.numberslight.utils.BUNDLE_NAME
+import com.example.numberslight.utils.EMPTY
+import com.example.numberslight.utils.handleNoNetworkError
 import com.example.numberslight.utils.launch
 import com.example.numberslight.view.adapter.MyItemRecyclerViewAdapter
 import com.example.numberslight.viewmodel.NumbersDataViewModel
 import com.example.numberslight.viewmodel.NumbersListViewModelFactory
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.article_view.*
 import javax.inject.Inject
 
@@ -33,6 +38,7 @@ class NumbersFragment : Fragment() {
     var isDualPane = false
     var selectedName: String? = null
     var viewAdapter: MyItemRecyclerViewAdapter? = null
+    private var snackbar: Snackbar? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,6 +54,34 @@ class NumbersFragment : Fragment() {
         viewModel.numbers().observe(viewLifecycleOwner, Observer {
             viewAdapter?.updateValue(it)
         })
+
+        viewModel.state().observe(viewLifecycleOwner, Observer {
+            handleError(it)
+        })
+    }
+
+    private fun handleError(it: NumbersDataViewModel.State?) {
+        when (it) {
+            is NumbersDataViewModel.State.Success -> snackbar?.dismiss()
+            is NumbersDataViewModel.State.Error -> {
+                when (it.error) {
+                    is NoNetworkConnectionInterceptor.NoNetworkConnectionException -> snackbar =
+                        activity?.findViewById<View>(
+                            android.R.id.content
+                        )?.handleNoNetworkError(
+                            {
+                                viewModel.getNumbers()
+                            }, resources
+                        )
+                    else -> Toast.makeText(
+                        context,
+                        getString(R.string.unexpected_error),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            }
+        }
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -66,7 +100,7 @@ class NumbersFragment : Fragment() {
 
         }
 
-        selectedName = savedInstanceState?.getString("curName", "") ?: ""
+        selectedName = savedInstanceState?.getString(BUNDLE_NAME, EMPTY) ?: EMPTY
 
         if (isDualPane) {
             showDetails(selectedName)
@@ -75,19 +109,19 @@ class NumbersFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString("curName", selectedName)
+        outState.putString(BUNDLE_NAME, selectedName)
     }
 
     private fun showDetails(name: String?) {
         selectedName = name
         if (isDualPane) {
             viewAdapter?.selectItem(name)
-            var details: NumberDetailsFragment? =
-                activity?.supportFragmentManager?.findFragmentById(number_details) as NumberDetailsFragment?
+            var details: NumberDetailsFragment1? =
+                activity?.supportFragmentManager?.findFragmentById(number_details) as NumberDetailsFragment1?
             if (details == null || details.getShownName() != name) {
-                details = NumberDetailsFragment.newInstance(name = name)
+                details = NumberDetailsFragment1.newInstance(name)
                 activity?.supportFragmentManager?.beginTransaction()?.apply {
-                    details?.let { replace(number_details, it) }
+                    replace(number_details, details)
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     commit()
                 }

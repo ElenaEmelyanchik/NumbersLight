@@ -40,7 +40,12 @@ class MyItemRecyclerViewAdapter(
 
         with(holder.view) {
             setBackColor(position, item)
-
+            setOnClickListener{ view->
+                notifyItemChanged(selectedPos)
+                selectedPos = holder.layoutPosition
+                notifyItemChanged(selectedPos)
+                listener.invoke(item)
+            }
             setOnFocusChangeListener { _, focused ->
                 if (focused) {
                     setBackgroundResource(R.color.colorPrimaryDark)
@@ -78,18 +83,5 @@ class MyItemRecyclerViewAdapter(
     inner class ViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         val name: TextView = view.name
         val image: ImageView = view.image
-
-        init {
-            view.setOnClickListener {
-                notifyItemChanged(selectedPos)
-                selectedPos = layoutPosition
-                notifyItemChanged(selectedPos)
-                listener.invoke(it.tag as NumberData)
-            }
-        }
-
-        override fun toString(): String {
-            return super.toString() + " '" + name.text + "'"
-        }
     }
 }

@@ -1,5 +1,6 @@
 package com.example.numberslight.di
 
+import android.content.Context
 import com.example.numberslight.service.repository.ApiRestRepository
 import com.example.numberslight.service.repository.Repository
 import com.example.numberslight.service.repository.NumbersLightApi
@@ -28,8 +29,15 @@ class NetworkModule {
         val loggingInterceptor = HttpLoggingInterceptor { message ->
             Platform.get().log(INFO, message, null)
         }
-        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY)
+        loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         return loggingInterceptor
+    }
+
+    @Provides
+    @Singleton
+    @NetworkConnectionInterceptor
+    fun provideNoNetworkConnectionInterceptor(context: Context): Interceptor {
+        return NoNetworkConnectionInterceptor(context)
     }
 
     @Provides
@@ -45,11 +53,15 @@ class NetworkModule {
 
     @Provides
     @Singleton
-    internal fun provideOkHttpClient(@LoggingInterceptor loggingInterceptor: Interceptor): OkHttpClient =
+    internal fun provideOkHttpClient(
+        @LoggingInterceptor loggingInterceptor: Interceptor,
+        @NetworkConnectionInterceptor noNetworkConnectionInterceptor: Interceptor
+    ): OkHttpClient =
         OkHttpClient
-        .Builder()
-        .addInterceptor(loggingInterceptor)
-        .build()
+            .Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(noNetworkConnectionInterceptor)
+            .build()
 
     @Provides
     @Singleton
