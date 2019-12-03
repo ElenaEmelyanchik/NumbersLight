@@ -12,7 +12,7 @@
         android:layout_weight="1" />
 
     <FrameLayout
-        android:id="@+id/details"
+        android:id="@+id/number_details"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"

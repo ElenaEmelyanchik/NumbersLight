@@ -1,6 +1,5 @@
 package com.example.numberslight.view.ui
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.numberslight.App
 import com.example.numberslight.R
+import com.example.numberslight.R.id.number_details
 import com.example.numberslight.utils.BUNDLE_NAME
 import com.example.numberslight.utils.launch
 import com.example.numberslight.view.adapter.MyItemRecyclerViewAdapter
@@ -54,7 +54,10 @@ class NumbersFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
 
         val viewManager = LinearLayoutManager(this.context)
-        viewAdapter = MyItemRecyclerViewAdapter { t -> showDetails(t.name) }
+        val detailsFrame: View? = activity?.findViewById(number_details)
+        isDualPane = detailsFrame != null && detailsFrame.visibility == View.VISIBLE
+
+        viewAdapter = MyItemRecyclerViewAdapter(isDualPane) { t -> showDetails(t.name) }
 
         (my_recycler_view as RecyclerView).apply {
             setHasFixedSize(true)
@@ -63,11 +66,8 @@ class NumbersFragment : Fragment() {
 
         }
 
-        val detailsFrame: View? = activity?.findViewById(R.id.details)
-        isDualPane = detailsFrame != null && detailsFrame.visibility === View.VISIBLE
-        if (savedInstanceState != null) {
-            selectedName = savedInstanceState.getString("curName", "")
-        }
+        selectedName = savedInstanceState?.getString("curName", "") ?: ""
+
         if (isDualPane) {
             showDetails(selectedName)
         }
@@ -83,13 +83,14 @@ class NumbersFragment : Fragment() {
         if (isDualPane) {
             viewAdapter?.selectItem(name)
             var details: NumberDetailsFragment? =
-                activity?.supportFragmentManager?.findFragmentById(R.id.details) as NumberDetailsFragment?
-            if (details == null || !details.getShownName().equals(name)) {
-                details = NumberDetailsFragment.newInstance(name)
-                val ft: FragmentTransaction? = activity?.supportFragmentManager?.beginTransaction()
-                details?.let { ft?.replace(R.id.details, it) }
-                ft?.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                ft?.commit()
+                activity?.supportFragmentManager?.findFragmentById(number_details) as NumberDetailsFragment?
+            if (details == null || details.getShownName() != name) {
+                details = NumberDetailsFragment.newInstance(name = name)
+                activity?.supportFragmentManager?.beginTransaction()?.apply {
+                    details?.let { replace(number_details, it) }
+                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    commit()
+                }
             }
         } else {
             this.context?.let {

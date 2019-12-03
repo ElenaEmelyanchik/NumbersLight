@@ -13,6 +13,7 @@ import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_item.view.*
 
 class MyItemRecyclerViewAdapter(
+    private val isDualPane: Boolean,
     private val listener: (NumberData)->Unit
 ) : RecyclerView.Adapter<MyItemRecyclerViewAdapter.ViewHolder>() {
     private val values = ArrayList<NumberData>()
@@ -33,19 +34,32 @@ class MyItemRecyclerViewAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = values[position]
-        if (clickedItem == item.name) {
-            holder.view.setBackgroundResource(
-                R.color.colorAccent
-            )
-        } else {
-            holder.view.setBackgroundResource(android.R.color.transparent)
-        }
 
-        holder.itemView.setBackgroundColor(
-            if (selectedPos == position) {
+        holder.name.text = item.name
+        item.image?.let { Picasso.get().load(it).into(holder.image); }
+
+        with(holder.view) {
+            setBackColor(position, item)
+
+            setOnFocusChangeListener { _, focused ->
+                if (focused) {
+                    setBackgroundResource(R.color.colorPrimaryDark)
+                } else {
+                    setBackColor(position, item)
+                }
+            }
+        }
+    }
+
+    private fun View.setBackColor(
+        position: Int,
+        item: NumberData
+    ) {
+        setBackgroundColor(
+            if (selectedPos == position && isDualPane) {
                 Color.GREEN
             } else {
-                if (clickedItem == item.name) {
+                if (clickedItem == item.name && isDualPane) {
                     selectedPos = position
                     Color.GREEN
                 } else {
@@ -53,19 +67,6 @@ class MyItemRecyclerViewAdapter(
                 }
             }
         )
-        holder.name.text = item.name
-        item.image?.let { Picasso.get().load(it).into(holder.image); }
-
-        with(holder.view) {
-            tag = item
-            setOnFocusChangeListener { _, focused ->
-                if (focused) {
-                    setBackgroundResource(R.color.colorPrimaryDark)
-                } else {
-                    setBackgroundResource(android.R.color.transparent)
-                }
-            }
-        }
     }
 
     override fun getItemCount(): Int = values.size
