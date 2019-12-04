@@ -116,10 +116,10 @@ class NumbersFragment : Fragment() {
         selectedName = name
         if (isDualPane) {
             viewAdapter?.selectItem(name)
-            var details: NumberDetailsFragment1? =
-                activity?.supportFragmentManager?.findFragmentById(number_details) as NumberDetailsFragment1?
+            var details: NumberDetailsFragment? =
+                activity?.supportFragmentManager?.findFragmentById(number_details) as NumberDetailsFragment?
             if (details == null || details.getShownName() != name) {
-                details = NumberDetailsFragment1.newInstance(name)
+                details = NumberDetailsFragment.newInstance(name)
                 activity?.supportFragmentManager?.beginTransaction()?.apply {
                     replace(number_details, details)
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
