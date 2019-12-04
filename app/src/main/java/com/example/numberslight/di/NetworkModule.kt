@@ -1,6 +1,7 @@
 package com.example.numberslight.di
 
 import android.content.Context
+import com.example.numberslight.BuildConfig
 import com.example.numberslight.service.repository.ApiRestRepository
 import com.example.numberslight.service.repository.Repository
 import com.example.numberslight.service.repository.NumbersLightApi
@@ -27,7 +28,9 @@ class NetworkModule {
     @LoggingInterceptor
     fun provideLoggingInterceptor(): Interceptor {
         val loggingInterceptor = HttpLoggingInterceptor { message ->
-            Platform.get().log(INFO, message, null)
+            if(BuildConfig.LOG_DEBUG_MODE) {
+                Platform.get().log(INFO, message, null)
+            }
         }
         loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         return loggingInterceptor

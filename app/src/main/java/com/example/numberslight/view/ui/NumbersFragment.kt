@@ -23,7 +23,7 @@ import com.example.numberslight.view.adapter.MyItemRecyclerViewAdapter
 import com.example.numberslight.viewmodel.NumbersDataViewModel
 import com.example.numberslight.viewmodel.NumbersListViewModelFactory
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.article_view.*
+import kotlinx.android.synthetic.main.number_list_view.*
 import javax.inject.Inject
 
 
@@ -44,7 +44,7 @@ class NumbersFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? =
-        inflater.inflate(R.layout.article_view, container, false).also {
+        inflater.inflate(R.layout.number_list_view, container, false).also {
             (activity?.application as App).component().inject(this)
         }
 
