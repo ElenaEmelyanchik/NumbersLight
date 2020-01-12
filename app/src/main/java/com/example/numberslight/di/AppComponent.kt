@@ -1,9 +1,8 @@
 package com.example.numberslight.di
 
 import com.example.numberslight.service.repository.Repository
-import com.example.numberslight.view.ui.NumberDetailsFragment
 import com.example.numberslight.view.ui.MainActivity
-import com.example.numberslight.view.ui.NumberDetailsFragment1
+import com.example.numberslight.view.ui.NumberDetailsFragment
 import com.example.numberslight.view.ui.NumbersFragment
 import dagger.Component
 import javax.inject.Singleton
@@ -16,5 +15,4 @@ interface AppComponent {
     fun inject(activity: MainActivity)
     fun inject(fragment: NumbersFragment)
     fun inject(fragment: NumberDetailsFragment)
-    fun inject(fragment: NumberDetailsFragment1)
 }

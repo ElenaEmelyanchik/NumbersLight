@@ -16,7 +16,7 @@ class NumberDetailsActivity : AppCompatActivity() {
         }
         setContentView(R.layout.activity_number_details);
         if (savedInstanceState == null) {
-            val details = NumberDetailsFragment1().apply {
+            val details = NumberDetailsFragment().apply {
                 arguments = intent.extras
             }
             supportFragmentManager.beginTransaction().add(R.id.frameLayout, details).commit()

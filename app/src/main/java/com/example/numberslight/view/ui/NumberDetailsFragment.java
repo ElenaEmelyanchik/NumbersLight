@@ -31,7 +31,7 @@ import kotlin.jvm.functions.Function0;
 import static com.example.numberslight.utils.ConstantsKt.BUNDLE_NAME;
 import static com.example.numberslight.utils.ConstantsKt.EMPTY;
 
-public class NumberDetailsFragment1 extends Fragment {
+public class NumberDetailsFragment extends Fragment {
     @Inject
     public NumberDetailsViewModelFactory viewModelFactory;
 
@@ -115,8 +115,8 @@ public class NumberDetailsFragment1 extends Fragment {
     }
 
 
-    static public NumberDetailsFragment1 newInstance(@Nullable String name) {
-        NumberDetailsFragment1 fragment = new NumberDetailsFragment1();
+    static public NumberDetailsFragment newInstance(@Nullable String name) {
+        NumberDetailsFragment fragment = new NumberDetailsFragment();
         Bundle args = new Bundle();
         args.putString(BUNDLE_NAME, name);
         fragment.setArguments(args);
